@@ -43,7 +43,7 @@ const BrowseData = () => {
         }
       }}
     >
-      <SafeAreaView>
+      <SafeAreaView style={{ flex: 1 }}>
         <Appbar.Header
           style={{
             backgroundColor: Colors.lightBlueA700,
@@ -66,7 +66,7 @@ const BrowseData = () => {
           />
           {/*<Appbar.Action icon="magnify" />*/}
         </Appbar.Header>
-        <ScrollView style={{ marginTop: 20 }}>
+        <ScrollView>
           {records.length > 0
             ? records.map((record) => {
                 if (filters.includeSpots && record.type === "spot") {

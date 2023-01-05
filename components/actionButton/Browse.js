@@ -21,14 +21,14 @@ const Browse = () => {
       style={[
         styles.actionBtnCommon,
         {
-          borderColor: btnState.color,
-          backgroundColor: btnState.BGColor,
+          borderColor: styles.default.color,
+          backgroundColor: styles.default.BGColor,
         },
       ]}
       icon={() => (
         <Icon
           name={"database-marker"}
-          style={[{ color: btnState.color }]}
+          style={[{ color: styles.default.color }]}
           size={120}
         />
       )}
