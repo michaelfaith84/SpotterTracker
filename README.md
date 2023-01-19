@@ -23,7 +23,7 @@
 <details>
   <summary>Preview</summary>
 
-![](https://drive.google.com/file/d/1BDj8V-2PAvpqxF6i0omq6V4hPYnUbotb/view)
+![](https://github.com/michaelfaith84/SpotterTracker/blob/master/creation_demo.gif)
 </details>
 
 ---
