@@ -20,27 +20,6 @@ import * as FileSystem from "expo-file-system";
 import { StorageAccessFramework } from "expo-file-system";
 import bbox from "@turf/bbox";
 
-// Persistent data storage functions
-//   Data is stored as a stringified JSON object
-//-----| Store location data
-//      ‾\  Incoming data
-//        ‾\  id = UUID - if null, create
-//          | name = string -> defaults to start time. only once--on spot or track start
-//          | category = one cat per entry            <| optional. only once--on spot or track start
-//          | tags = array of tags                    <|
-//          | data = { "coords": { "accuracy": float,
-//           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾| "altitude": float,
-//                               | "altitudeAccuracy": float,
-//                               | "heading": float,
-//                               | "latitude": float,
-//                               | "longitude": float,
-//           ____________________| "speed": float }
-//          | Storage Structure |
-//           ‾\  key = targetUUID: { name:            <| same as above
-//             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾| category:        <|
-//                                 | tags:            <|
-//---------------------------------| data: array of "coords" objects
-
 const ModelState = (props) => {
   const initialState = {
     records: [],
@@ -222,9 +201,13 @@ const ModelState = (props) => {
     )
       .then(async (fileUri) => {
         // Save data to newly created file
-        await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(feature), {
-          encoding: FileSystem.EncodingType.UTF8,
-        }).then(() =>
+        await FileSystem.writeAsStringAsync(
+          fileUri,
+          JSON.stringify(feature, null, "\t"),
+          {
+            encoding: FileSystem.EncodingType.UTF8,
+          }
+        ).then(() =>
           sendNotification({
             type: "success",
             msg: `Exported as ${record.name}.json`,

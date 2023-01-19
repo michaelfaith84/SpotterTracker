@@ -3,6 +3,7 @@
         A simple mobile app for getting or tracking your location
 
 
+
 #### Definitions
 
 - Spot: A single point.
@@ -19,11 +20,24 @@
 - As soon as coordinates are received, they're saved to your phone--if your phone's battery dies mid-recording, you don't lose any data!
 
 ---
+#### Take a Peek
 
 <details>
-  <summary>Preview</summary>
+  <summary>Spot and Track Creation Demo</summary>
 
 ![](https://github.com/michaelfaith84/SpotterTracker/blob/master/creation_demo.gif)
+</details>
+
+<details>
+  <summary>Data Management Demo</summary>
+
+![](https://github.com/michaelfaith84/SpotterTracker/blob/master/manage_demo.gif)
+</details>
+
+<details>
+  <summary>GeoJSON Export Example</summary>
+
+![](https://github.com/michaelfaith84/SpotterTracker/blob/master/geojson_track_example.jpg)
 </details>
 
 ---
@@ -41,5 +55,6 @@ Use [Expo Go](https://play.google.com/store/apps/details?id=host.exp.exponent&hl
 
 #### Notes
 
+- The app is done enough for testing but not quite there yet.
 - Only works on Android at the moment.
   - Tested on the Pixel 6 Pro running Android 13
