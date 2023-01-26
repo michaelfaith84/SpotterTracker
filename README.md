@@ -37,7 +37,7 @@
 <details>
   <summary>GeoJSON Export Example</summary>
 
-![](https://github.com/michaelfaith84/SpotterTracker/blob/master/geojson_track_example.jpg)
+<img alt="A screen shot of an exported track in GeoJSON. It is a feature with a bounding box and a linestring. The points are longitude, latitude, and elevation." src="https://github.com/michaelfaith84/SpotterTracker/blob/master/geojson_track_example.jpg" height="150" />
 </details>
 
 ---

@@ -8,6 +8,7 @@ import {
   LOAD_RECORD,
   REMOVE_RECORD,
   SET_NOTIFICATION,
+  SET_SETTINGS,
   UPDATE_RECORD,
 } from "./types";
 import { Storage } from "expo-storage";
@@ -22,6 +23,7 @@ import bbox from "@turf/bbox";
 
 const ModelState = (props) => {
   const initialState = {
+    settings: {},
     records: [],
     notification: { type: "", msg: "" },
     pulseAnim: useRef(new Animated.Value(1)),
@@ -89,12 +91,16 @@ const ModelState = (props) => {
     await Storage.setItem({
       key: id,
       value: JSON.stringify(record),
-    }).then(() =>
-      dispatch({
-        type: CREATE_RECORD,
-        payload: record,
-      })
-    );
+    })
+      .then(() =>
+        dispatch({
+          type: CREATE_RECORD,
+          payload: record,
+        })
+      )
+      .catch((e) =>
+        dispatch({ type: SET_NOTIFICATION, payload: { type: "error", msg: e } })
+      );
   };
 
   const appendRecord = async (id, dataType, data) => {
@@ -122,15 +128,21 @@ const ModelState = (props) => {
   };
 
   const removeRecord = async (id) =>
-    await Storage.removeItem({ key: id }).then(() =>
-      dispatch({
-        type: REMOVE_RECORD,
-        payload: id,
-      })
-    );
+    await Storage.removeItem({ key: id })
+      .then(() =>
+        dispatch({
+          type: REMOVE_RECORD,
+          payload: id,
+        })
+      )
+      .catch((e) =>
+        dispatch({ type: SET_NOTIFICATION, payload: { type: "error", msg: e } })
+      );
 
   const loadRecords = async () => {
-    const keys = await Storage.getAllKeys();
+    let keys = await Storage.getAllKeys();
+    keys = keys.filter((key) => key !== "settings");
+
     keys.forEach(
       async (key) =>
         await Storage.getItem({ key })
@@ -214,14 +226,39 @@ const ModelState = (props) => {
           })
         );
       })
-      .catch(() => {
-        sendNotification({ type: "error", msg: "Unable to export" });
+      .catch(async () => {
+        return false;
+        // sendNotification({ type: "error", msg: "Unable to export" });
       });
+  };
+
+  // 'setting' should be a key: value pair
+  const setSetting = async (setting) => {
+    await Storage.setItem({
+      key: "settings",
+      value: JSON.stringify({
+        ...state.settings,
+        [Object.keys(setting)[0]]: JSON.stringify(setting),
+      }),
+    });
+    dispatch({
+      type: SET_SETTINGS,
+      payload: { ...state.settings, [Object.keys(setting)[0]]: setting },
+    });
+  };
+
+  const loadSettings = async () => {
+    const settings = await Storage.getItem({ key: "settings" });
+    dispatch({
+      type: SET_SETTINGS,
+      payload: settings ? JSON.parse(settings) : {},
+    });
   };
 
   return (
     <ModelContext.Provider
       value={{
+        settings: state.settings,
         records: state.records,
         notification: state.notification,
         pulseAnim: state.pulseAnim,
@@ -237,6 +274,8 @@ const ModelState = (props) => {
         createDefaultName,
         getLength,
         exportGeoJSON,
+        loadSettings,
+        setSetting,
       }}
     >
       {props.children}

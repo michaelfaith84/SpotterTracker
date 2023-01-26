@@ -4,7 +4,7 @@ import {
   FlingGestureHandler,
   State,
 } from "react-native-gesture-handler";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ModelContext from "../../context/ModelContext";
 import AnimatedBackground from "./AnimatedBackground";
 import { Surface } from "react-native-paper";
@@ -13,14 +13,14 @@ import Spot from "./Spot";
 import Browse from "./Browse";
 import Acquiring from "./Acquiring";
 import Tracking from "./Tracking";
-import Notification from "../notification";
+import Notification from "../../components/notification";
 import * as Location from "expo-location";
 import { TASK_FETCH_LOCATION } from "../../context/types";
 import * as TaskManager from "expo-task-manager";
 
 const ActionButton = () => {
   const modelContext = useContext(ModelContext);
-  const { styles, sendNotification, appendRecord } = modelContext;
+  const { styles, sendNotification, appendRecord, loadSettings } = modelContext;
   const [fetching, setFetching] = useState(false);
 
   const stopTracking = () => {
@@ -113,6 +113,10 @@ const ActionButton = () => {
       );
     }
   );
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
 
   return (
     <FlingGestureHandler

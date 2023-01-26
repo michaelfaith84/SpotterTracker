@@ -16,13 +16,16 @@ const DataRow = ({ props: { record } }) => {
   const modelContext = useContext(ModelContext);
   const {
     sendNotification,
-    removeRecord,
     updateRecord,
     getLength,
     exportGeoJSON,
+    settings,
+    setSetting,
+    removeRecord,
   } = modelContext;
   const [editName, setEditName] = useState(false);
   const [editedName, setEditedName] = useState(record.name);
+
   const toggleEditMode = (id) => {
     if (record.id === id) {
       setEditName(!editName);
@@ -42,11 +45,19 @@ const DataRow = ({ props: { record } }) => {
     const id = values[1];
     switch (action) {
       case "geojson":
-        const permissions =
-          await StorageAccessFramework.requestDirectoryPermissionsAsync();
-        if (permissions.granted === true) {
-          exportGeoJSON(permissions.directoryUri, record);
+        if (!settings.hasOwnProperty("directory")) {
+          const permissions =
+            await StorageAccessFramework.requestDirectoryPermissionsAsync();
+          if (permissions.granted === true) {
+            await setSetting({ directory: permissions.directoryUri });
+            exportGeoJSON(permissions.directoryUri, record);
+          }
+        } else {
+          exportGeoJSON(settings.directory, record);
         }
+        break;
+      case "copy":
+        await copyCoordsToClipboard();
         break;
       case "delete":
         removeRecord(id);
@@ -58,7 +69,7 @@ const DataRow = ({ props: { record } }) => {
 
   const copyCoordsToClipboard = async () => {
     await Clipboard.setStringAsync(
-      `${record.gps[0].longitude}, ${record.gps[0].latitude}`
+      `${record.gps[0].latitude}, ${record.gps[0].longitude}`
     );
     sendNotification({ type: "info", msg: "Copied to clipboard" });
   };
@@ -132,28 +143,47 @@ const DataRow = ({ props: { record } }) => {
           >
             <Text>Lat: {record.gps[0].latitude}</Text>
             <Text>Lon: {record.gps[0].longitude}</Text>
-            <Icon
-              name={"clipboard-check-outline"}
-              size={24}
-              onPress={copyCoordsToClipboard}
-            />
           </View>
         ) : (
           ""
         )}
       </Card.Content>
       <Card.Actions style={{ justifyContent: "space-between" }}>
-        <SegmentedButtons
-          value={null}
-          onValueChange={pressHandler}
-          buttons={[
-            { value: `geojson:${record.id}`, label: "geojson" },
-            {
-              value: `delete:${record.id}`,
-              label: <Icon name={"delete"} size={18} color={Colors.red700} />,
-            },
-          ]}
-        />
+        {record.type === "spot" ? (
+          <SegmentedButtons
+            value={null}
+            onValueChange={pressHandler}
+            buttons={[
+              { value: `geojson:${record.id}`, label: "geojson" },
+              {
+                value: `copy:${record.id}`,
+                label: (
+                  <Icon
+                    name={"clipboard-check-outline"}
+                    size={18}
+                    onPress={copyCoordsToClipboard}
+                  />
+                ),
+              },
+              {
+                value: `delete:${record.id}`,
+                label: <Icon name={"delete"} size={18} color={Colors.red700} />,
+              },
+            ]}
+          />
+        ) : (
+          <SegmentedButtons
+            value={null}
+            onValueChange={pressHandler}
+            buttons={[
+              { value: `geojson:${record.id}`, label: "geojson" },
+              {
+                value: `delete:${record.id}`,
+                label: <Icon name={"delete"} size={18} color={Colors.red700} />,
+              },
+            ]}
+          />
+        )}
       </Card.Actions>
     </Card>
   );

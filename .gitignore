@@ -12,3 +12,5 @@ web-build/
 eas.json
 # macOS
 .DS_Store
+/components/confirmDeleteDialog/
+/components/nameDialog/

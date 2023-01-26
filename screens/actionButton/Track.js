@@ -36,6 +36,7 @@ const Track = ({ props: { setBtnState, setStartTime, setID } }) => {
       setID(id);
       const start = new Date();
       setStartTime(start);
+      const name = name ? name : createDefaultName(start);
       setBtnState("tracking");
       await Location.startLocationUpdatesAsync(TASK_FETCH_LOCATION, {
         accuracy: Location.Accuracy.Highest,
@@ -52,53 +53,14 @@ const Track = ({ props: { setBtnState, setStartTime, setID } }) => {
           //   state.preferences.track.frequency +
           //   " ms.",
         },
-      }).then(() => createRecord(id, createDefaultName(start), "track"));
+      }).then(() => createRecord(id, name, "track"));
     }
-    // .catch((err) => {
-    //   sendNotification({ type: "error", msg: err });
-    // });
   };
 
-  // const startTrack = async (name = null) => {
-  //   setStartTime;
-  //   // Get permission
-  //   // // await Location.requestBackgroundPermissionsAsync()
-  //   // //   .then(async (status) => {
-  //   // //     if (status.granted !== true) {
-  //   // //       new Error("Permission to access location was denied");
-  //   // //     } else {
-  //   // //       await Location.startLocationUpdatesAsync(TASK_FETCH_LOCATION, {
-  //   // //         accuracy: LocationAccuracy.Highest,
-  //   // //         // distanceInterval: state.preferences.track.interval,
-  //   // //         // deferredUpdatesInterval: state.preferences.track.frequency,
-  //   // //         // foregroundService is how you get the task to be updated as often as would be if the app was open
-  //   // //         foregroundService: {
-  //   // //           notificationTitle: "Using your location",
-  //   // //           // notificationBody:
-  //   // //           //   "Tracking you at an interval of " +
-  //   // //           //   state.preferences.track.interval +
-  //   // //           //   " meters or every " +
-  //   // //           //   state.preferences.track.frequency +
-  //   // //           //   " ms.",
-  //   // //         },
-  //   // //       });
-  //   // //     }
-  //   //   })
-  //   //   .catch((err) => {
-  //   //     dispatch({
-  //   //       type: SET_NOTIFICATION,
-  //   //       payload: { type: "error", msg: err },
-  //   //     });
-  //   //   });
-  // };
-  // useEffect(() => {
-  //   setBtnState(mode);
-  // }, []);
   return (
     <Button
       mode={"text"}
       style={[
-        // styles.fadingContainer,
         styles.actionBtnCommon,
         {
           borderColor: styles.default.color,

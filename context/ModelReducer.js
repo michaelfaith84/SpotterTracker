@@ -5,6 +5,7 @@ import {
   LOAD_RECORD,
   REMOVE_RECORD,
   SET_NOTIFICATION,
+  SET_SETTINGS,
   UPDATE_RECORD,
 } from "./types";
 
@@ -16,7 +17,7 @@ export default (state, action) => {
         records: [
           ...state.records.filter((e) => e.id !== action.payload.id),
           action.payload,
-        ].sort((a, b) => a.name - b.name),
+        ],
       };
     case CREATE_RECORD:
       return {
@@ -37,7 +38,7 @@ export default (state, action) => {
         records: [
           ...state.records.filter((e) => e.id !== action.payload.id),
           action.payload,
-        ].sort((a, b) => a.name - b.name),
+        ],
         notification: {
           type: "success",
           msg: `Record ${action.payload.name} has been updated`,
@@ -65,6 +66,8 @@ export default (state, action) => {
         ...state,
         notification: { type: "", msg: "" },
       };
+    case SET_SETTINGS:
+      return { ...state, settings: action.payload };
     default:
       return state;
   }

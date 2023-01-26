@@ -5,6 +5,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Acquiring from "./Acquiring";
 import * as Location from "expo-location";
 import { v4 } from "uuid";
+import { View } from "react-native";
 
 const Spot = ({ props: { fetching, setFetching } }) => {
   const [foregroundStatus, requestforegroundPermission] =
@@ -18,6 +19,7 @@ const Spot = ({ props: { fetching, setFetching } }) => {
     let location = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.Highest,
     });
+
     const id = v4();
     const start = new Date();
     createRecord(id, createDefaultName(start), "spot", {
@@ -41,32 +43,31 @@ const Spot = ({ props: { fetching, setFetching } }) => {
     }
   }, []);
 
-  return !fetching ? (
-    <Button
-      mode={"text"}
-      style={[
-        styles.actionBtnCommon,
-        {
-          borderColor: styles.default.color,
-          backgroundColor: styles.default.BGColor,
-        },
-      ]}
-      icon={() => (
-        <Icon
-          name={"map-marker"}
-          style={[{ color: styles.default.color }]}
-          size={120}
+  return (
+    <View>
+      {!fetching ? (
+        <Button
+          mode={"text"}
+          style={[
+            styles.actionBtnCommon,
+            {
+              borderColor: styles.default.color,
+              backgroundColor: styles.default.BGColor,
+            },
+          ]}
+          icon={() => (
+            <Icon
+              name={"map-marker"}
+              style={[{ color: styles.default.color }]}
+              size={120}
+            />
+          )}
+          onPress={getLocation}
         />
+      ) : (
+        <Acquiring props={{ cancel }} />
       )}
-      onPress={getLocation}
-      // onLongPress={
-      //   modes[0] === "spot" || modes[0] === "track"
-      //     ? showStartModal
-      //     : () => {}
-      // }
-    />
-  ) : (
-    <Acquiring props={{ cancel }} />
+    </View>
   );
 };
 

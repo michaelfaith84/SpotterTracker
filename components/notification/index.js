@@ -23,6 +23,7 @@ const Notification = () => {
 
   return (
     <Snackbar
+      wrapperStyle={{ bottom: 0 }}
       visible={notification.type !== ""}
       onDismiss={clearNotification}
       action={{
@@ -39,7 +40,6 @@ const Notification = () => {
     >
       {notification.type === "success" ? (
         <Icon name={"check-circle-outline"} style={{ color: "white" }}>
-          {"    "}
           {`${
             notification.type.charAt(0).toLocaleUpperCase() +
             notification.type.slice(1)
@@ -50,7 +50,6 @@ const Notification = () => {
       )}
       {notification.type === "info" ? (
         <Icon name={"alert-circle-outline"} style={{ color: "white" }}>
-          {"    "}
           {`${
             notification.type.charAt(0).toLocaleUpperCase() +
             notification.type.slice(1)
@@ -61,7 +60,6 @@ const Notification = () => {
       )}
       {notification.type === "warning" ? (
         <Icon name={"alert-outline"} style={{ color: "white" }}>
-          {"    "}
           {`${
             notification.type.charAt(0).toLocaleUpperCase() +
             notification.type.slice(1)
@@ -72,7 +70,6 @@ const Notification = () => {
       )}
       {notification.type === "error" ? (
         <Icon name={"alert-octagon-outline"} style={{ color: "white" }}>
-          {"    "}
           {`${
             notification.type.charAt(0).toLocaleUpperCase() +
             notification.type.slice(1)

@@ -9,7 +9,7 @@ import {
   State,
 } from "react-native-gesture-handler";
 import { CommonActions, useNavigation } from "@react-navigation/native";
-import Notification from "../notification";
+import Notification from "../../components/notification";
 
 const BrowseData = () => {
   const modelContext = useContext(ModelContext);
