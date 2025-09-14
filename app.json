@@ -3,6 +3,8 @@
     "name": "SpotterTracker",
     "slug": "SpotterTracker",
     "version": "0.5.0",
+    "sdkVersion": "53.0.0",
+    "platforms": ["ios", "android"],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -11,14 +13,23 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ]
+    ],
+    "jsEngine": "hermes",
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "jsEngine": "hermes"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,7 +39,7 @@
       "package": "com.anonymous.SpotterTracker",
       "permissions": [
         "ACCESS_BACKGROUND_LOCATION",
-        "ACCESS_COURSE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "FOREGROUND_SERVICE",
         "READ_EXTERNAL_STORAGE",

@@ -4,9 +4,13 @@ import { Button } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Animated } from "react-native";
 
-const Acquiring = () => {
+const Acquiring = ({ cancel }) => {
   const modelContext = useContext(ModelContext);
   const { styles } = modelContext;
+
+  const handleCancel = () => {
+    cancel();
+  };
 
   const pulseAnim = useRef(new Animated.Value(1));
   const pulse = useRef(
@@ -54,6 +58,7 @@ const Acquiring = () => {
             name={"satellite-variant"}
             style={[{ color: styles.acquiring.color }]}
             size={120}
+            onPress={handleCancel}
           />
         )}
         animated={true}

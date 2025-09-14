@@ -5,6 +5,7 @@ import {
   SegmentedButtons,
   TextInput,
   Title,
+  useTheme,
 } from "react-native-paper";
 import { Text, View } from "react-native";
 import ModelContext from "../../context/ModelContext";
@@ -25,6 +26,7 @@ const DataRow = ({ props: { record } }) => {
   } = modelContext;
   const [editName, setEditName] = useState(false);
   const [editedName, setEditedName] = useState(record.name);
+  const theme = useTheme();
 
   const toggleEditMode = (id) => {
     if (record.id === id) {
@@ -71,12 +73,10 @@ const DataRow = ({ props: { record } }) => {
     await Clipboard.setStringAsync(
       `${record.gps[0].latitude}, ${record.gps[0].longitude}`
     );
-    sendNotification({ type: "info", msg: "Copied to clipboard" });
   };
 
   return (
-    <Card mode={"outlined"} style={{ paddingBottom: 20 }}>
-      {/*<Card.Title title={spot.name} />*/}
+    <Card style={{ margin: 10 }}>
       <Card.Content>
         <View
           style={{
@@ -92,7 +92,9 @@ const DataRow = ({ props: { record } }) => {
             size={24}
           />
           {!editName ? (
-            <Title>{record.name}</Title>
+            <Text variant={"titleLarge"}>
+              {JSON.stringify(record.name).replaceAll('"', "")}
+            </Text>
           ) : (
             <TextInput
               autoFocus={true}
@@ -109,6 +111,7 @@ const DataRow = ({ props: { record } }) => {
             name={"pencil"}
             size={24}
             onPress={() => toggleEditMode(record.id)}
+            color={theme.colors.primary}
           />
         </View>
         {record.type === "track" ? (
@@ -154,9 +157,14 @@ const DataRow = ({ props: { record } }) => {
             value={null}
             onValueChange={pressHandler}
             buttons={[
-              { value: `geojson:${record.id}`, label: "geojson" },
+              {
+                value: `geojson:${record.id}`,
+                label: "geojson",
+                uncheckedColor: theme.colors.primary,
+              },
               {
                 value: `copy:${record.id}`,
+                uncheckedColor: theme.colors.primary,
                 label: (
                   <Icon
                     name={"clipboard-check-outline"}

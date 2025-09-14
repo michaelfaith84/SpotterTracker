@@ -3,7 +3,7 @@ import ModelContext from "../../context/ModelContext";
 import { Button } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Acquiring from "./Acquiring";
-
+// TODO: Add picture button
 const Tracking = ({
   props: { startTime, stopTracking, setFetching, fetching },
 }) => {
