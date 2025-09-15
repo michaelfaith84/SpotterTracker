@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Button } from "react-native-paper";
 import ModelContext from "../../context/ModelContext";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -6,6 +6,8 @@ import { TASK_FETCH_LOCATION } from "../../context/types";
 import "react-native-get-random-values";
 import { v4 } from "uuid";
 import * as Location from "expo-location";
+import LongPressDialog from "../../components/longPressDialog";
+import { View } from "react-native";
 
 const Track = ({ props: { setBtnState, setStartTime, setID } }) => {
   const [foregroundStatus, requestforegroundPermission] =
@@ -13,8 +15,25 @@ const Track = ({ props: { setBtnState, setStartTime, setID } }) => {
   const [backgroundStatus, requestBackgroundPermission] =
     Location.useBackgroundPermissions();
   const modelContext = useContext(ModelContext);
+  const [visible, setVisible] = React.useState(false);
   const { styles, sendNotification, createRecord, createDefaultName } =
     modelContext;
+
+  const TrackIcon = () => (
+    <Icon
+      name={"map-marker-path"}
+      style={[{ color: styles.default.color }]}
+      size={120}
+    />
+  );
+
+  const showDialog = () => {
+    setVisible(true);
+  };
+
+  const hideDialog = () => {
+    setVisible(false);
+  };
 
   useEffect(() => {
     if (!foregroundStatus) {
@@ -58,29 +77,28 @@ const Track = ({ props: { setBtnState, setStartTime, setID } }) => {
   };
 
   return (
-    <Button
-      mode={"text"}
-      style={[
-        styles.actionBtnCommon,
-        {
-          borderColor: styles.default.color,
-          backgroundColor: styles.default.BGColor,
-        },
-      ]}
-      icon={() => (
-        <Icon
-          name={"map-marker-path"}
-          style={[{ color: styles.default.color }]}
-          size={120}
-        />
-      )}
-      onPress={startTracking}
-      // onLongPress={
-      //   modes[0] === "spot" || modes[0] === "track"
-      //     ? showStartModal
-      //     : () => {}
-      // }
-    />
+    <View>
+      <Button
+        mode={"text"}
+        style={[
+          styles.actionBtnCommon,
+          {
+            borderColor: styles.default.color,
+            backgroundColor: styles.default.BGColor,
+          },
+        ]}
+        icon={() => <TrackIcon />}
+        onPress={startTracking}
+        onLongPress={showDialog}
+      />
+
+      <LongPressDialog
+        setVisible={setVisible}
+        visible={visible}
+        icon={"map-marker-path"}
+        startFunc={startTracking}
+      />
+    </View>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useReducer, useRef } from "react";
+import React, { useReducer } from "react";
 import ModelContext from "./ModelContext";
 import ModelReducer from "./ModelReducer";
 import {
@@ -11,22 +11,23 @@ import {
   SET_SETTINGS,
   UPDATE_RECORD,
 } from "./types";
-import { Storage } from "expo-storage";
 import "react-native-get-random-values";
-import { Animated, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { MD2Colors as Colors } from "react-native-paper";
 import { lineString, point } from "@turf/helpers";
 import length from "@turf/length";
 import * as FileSystem from "expo-file-system";
 import { StorageAccessFramework } from "expo-file-system";
 import bbox from "@turf/bbox";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Exporter from "expo-location-export/src/Exporter";
 
 const ModelState = (props) => {
   const initialState = {
     settings: {},
     records: [],
     notification: { type: "", msg: "" },
-    pulseAnim: useRef(new Animated.Value(1)),
+    // pulseAnim: useRef(new Animated.Value(1)),
     styles: StyleSheet.create({
       fadingContainer: { opacity: 1 },
       actionBtnCommon: {
@@ -86,12 +87,36 @@ const ModelState = (props) => {
 
   const [state, dispatch] = useReducer(ModelReducer, initialState);
 
-  const createRecord = async (id, name, type, gps = null) => {
-    const record = { id, name, type, gps: gps ? [gps] : [] };
-    await Storage.setItem({
-      key: id,
-      value: JSON.stringify(record),
-    })
+  /**
+   *
+   * @param {string} id - storage key
+   * @param {string} name
+   * @param {string} type
+   * @param [gps=null]
+   * @param [properties=null]
+   * @return {Promise<void>}
+   */
+  const createRecord = async (
+    id,
+    name,
+    type,
+    gps = null,
+    properties = null
+  ) => {
+    const obj = new Exporter({ id, name });
+    if (properties) {
+      obj.add({ ...gps, props: properties });
+    } else {
+      obj.add(gps);
+    }
+
+    const record = {
+      id,
+      name,
+      type,
+      exporter: gps ? JSON.parse(obj.dump()) : {},
+    };
+    await AsyncStorage.setItem(id, JSON.stringify(record))
       .then(() =>
         dispatch({
           type: CREATE_RECORD,
@@ -103,23 +128,30 @@ const ModelState = (props) => {
       );
   };
 
-  const appendRecord = async (id, dataType, data) => {
+  /**
+   *
+   * @param id
+   * @param dataType
+   * @param location
+   * @param [properties={}]
+   * @return {Promise<void>}
+   */
+  const appendRecord = async (id, dataType, location, properties = {}) => {
     const record = state.records.filter((record) => record.id === id)[0];
+    const obj = Exporter.load(record.location);
+    location["props"] = properties;
+    obj.add(location);
     const updatedRecord = {
       ...record,
-      [dataType]: record[dataType] ? [...record[dataType], data] : data,
+      [dataType]: record[dataType] ? [...record[dataType], location] : location,
     };
-    await Storage.setItem({
-      key: id,
-      value: JSON.stringify(updatedRecord),
-    }).then(() => dispatch({ type: APPEND_RECORD, payload: updatedRecord }));
+    await AsyncStorage.setItem(id, JSON.stringify(updatedRecord)).then(() =>
+      dispatch({ type: APPEND_RECORD, payload: updatedRecord })
+    );
   };
 
   const updateRecord = async (id, record) => {
-    await Storage.setItem({
-      key: id,
-      value: JSON.stringify(record),
-    }).then(() =>
+    await AsyncStorage.setItem(id, JSON.stringify(record)).then(() =>
       dispatch({
         type: UPDATE_RECORD,
         payload: record,
@@ -128,7 +160,7 @@ const ModelState = (props) => {
   };
 
   const removeRecord = async (id) =>
-    await Storage.removeItem({ key: id })
+    await AsyncStorage.removeItem(id)
       .then(() =>
         dispatch({
           type: REMOVE_RECORD,
@@ -140,19 +172,24 @@ const ModelState = (props) => {
       );
 
   const loadRecords = async () => {
-    let keys = await Storage.getAllKeys();
+    let keys = await AsyncStorage.getAllKeys();
     keys = keys.filter((key) => key !== "settings");
 
     keys.forEach(
       async (key) =>
-        await Storage.getItem({ key })
+        await AsyncStorage.getItem(key)
           .then((rec) => {
             dispatch({
               type: LOAD_RECORD,
-              payload: JSON.parse(rec),
+              payload: rec,
             });
           })
-          .catch(() => {})
+          .catch((e) =>
+            dispatch({
+              type: SET_NOTIFICATION,
+              payload: { type: "error", msg: e },
+            })
+          )
     );
   };
 
@@ -204,8 +241,11 @@ const ModelState = (props) => {
   };
 
   const exportGeoJSON = async (uri, record) => {
+    const exporter = Exporter.load(JSON.stringify(record.exporter));
     const feature =
-      record.type === "track" ? makeLineString(record) : makePoint(record);
+      record.type === "track"
+        ? exporter.toLine("geojson")
+        : exporter.toPoint("geojson");
     await StorageAccessFramework.createFileAsync(
       uri,
       `${record.name}.json`,
@@ -226,32 +266,27 @@ const ModelState = (props) => {
           })
         );
       })
-      .catch(async () => {
-        return false;
-        // sendNotification({ type: "error", msg: "Unable to export" });
+      .catch(async (e) => {
+        sendNotification({ type: "error", msg: "Unable to export" });
       });
   };
 
   // 'setting' should be a key: value pair
   const setSetting = async (setting) => {
-    await Storage.setItem({
-      key: "settings",
-      value: JSON.stringify({
-        ...state.settings,
-        [Object.keys(setting)[0]]: JSON.stringify(setting),
-      }),
-    });
+    await AsyncStorage.setItem("settings", JSON.stringify(state.settings));
     dispatch({
       type: SET_SETTINGS,
-      payload: { ...state.settings, [Object.keys(setting)[0]]: setting },
+      payload: { ...state.settings, setting },
     });
   };
 
   const loadSettings = async () => {
-    const settings = await Storage.getItem({ key: "settings" });
+    const settings = await AsyncStorage.getItem("settings");
+    const parsed = JSON.parse(settings);
+
     dispatch({
       type: SET_SETTINGS,
-      payload: settings ? JSON.parse(settings) : {},
+      payload: settings ? parsed : {},
     });
   };
 
@@ -261,7 +296,7 @@ const ModelState = (props) => {
         settings: state.settings,
         records: state.records,
         notification: state.notification,
-        pulseAnim: state.pulseAnim,
+        // pulseAnim: state.pulseAnim,
         styles: state.styles,
         btnState: state.btnState,
         loadRecords,

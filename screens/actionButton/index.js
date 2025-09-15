@@ -17,11 +17,32 @@ import Notification from "../../components/notification";
 import * as Location from "expo-location";
 import { TASK_FETCH_LOCATION } from "../../context/types";
 import * as TaskManager from "expo-task-manager";
+import * as ImagePicker from "expo-image-picker";
+
+export async function takePhoto() {
+  const permission = await ImagePicker.requestCameraPermissionsAsync();
+  if (!permission.granted) {
+    console.error("Permission denied");
+    return;
+  }
+
+  const result = await ImagePicker.launchCameraAsync();
+
+  if (!result.canceled) {
+    return result.assets[0].uri;
+  }
+  return null;
+}
 
 const ActionButton = () => {
   const modelContext = useContext(ModelContext);
   const { styles, sendNotification, appendRecord, loadSettings } = modelContext;
   const [fetching, setFetching] = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  const handleAcquiringSpotCancel = () => {
+    setFetching(false);
+  };
 
   const stopTracking = () => {
     Location.hasStartedLocationUpdatesAsync(TASK_FETCH_LOCATION).then(
@@ -70,6 +91,7 @@ const ActionButton = () => {
         setBtnState,
         fetching,
         setFetching,
+        setVisible,
       }}
     />,
     <Track
@@ -118,6 +140,7 @@ const ActionButton = () => {
     loadSettings();
   }, []);
 
+  // TODO: Migrate to Gesture.Fling
   return (
     <FlingGestureHandler
       direction={Directions.UP}
@@ -139,7 +162,7 @@ const ActionButton = () => {
           <AnimatedBackground />
           <SafeAreaView style={[styles.overlay, styles.actionButtonContainer]}>
             <Surface style={styles.fabSurface}>
-              {fetching ? <Acquiring /> : ""}
+              {fetching ? <Acquiring cancel={handleAcquiringSpotCancel} /> : ""}
               {btnState === "idle" && !fetching ? mode[0] : ""}
               {btnState === "tracking" && !fetching && id && startTime ? (
                 <Tracking
@@ -158,6 +181,7 @@ const ActionButton = () => {
             </Surface>
           </SafeAreaView>
           <Notification />
+          {/*<LongPressModal visible={visible} setVisible={setVisible} />*/}
         </SafeAreaView>
       </FlingGestureHandler>
     </FlingGestureHandler>

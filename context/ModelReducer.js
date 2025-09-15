@@ -12,11 +12,12 @@ import {
 export default (state, action) => {
   switch (action.type) {
     case LOAD_RECORD:
+      console.log("State Records", JSON.stringify(state.records));
       return {
         ...state,
         records: [
           ...state.records.filter((e) => e.id !== action.payload.id),
-          action.payload,
+          typeof action.payload ? JSON.parse(action.payload) : action.payload,
         ],
       };
     case CREATE_RECORD:

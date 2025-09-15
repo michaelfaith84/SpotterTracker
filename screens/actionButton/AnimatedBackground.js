@@ -2,7 +2,7 @@ import { Animated, SafeAreaView } from "react-native";
 import ModelContext from "../../context/ModelContext";
 import { useContext, useRef } from "react";
 import { Video } from "expo-av";
-
+// TODO: Migrate to expo-video
 const AnimatedBackground = () => {
   const modelContext = useContext(ModelContext);
   const { styles } = modelContext;

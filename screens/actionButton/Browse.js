@@ -3,7 +3,7 @@ import ModelContext from "../../context/ModelContext";
 import { Button } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { CommonActions, useNavigation } from "@react-navigation/native";
-
+//TODO: Make this look less gross
 const Browse = () => {
   const modelContext = useContext(ModelContext);
   const { styles } = modelContext;
