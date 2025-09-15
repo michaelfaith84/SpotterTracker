@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Card,
   MD2Colors as Colors,
@@ -12,8 +12,9 @@ import ModelContext from "../../context/ModelContext";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { StorageAccessFramework } from "expo-file-system";
 import * as Clipboard from "expo-clipboard";
+import Exporter from "expo-location-export/src/Exporter";
 
-const DataRow = ({ props: { record } }) => {
+const DataRow = ({ record }) => {
   const modelContext = useContext(ModelContext);
   const {
     sendNotification,
@@ -37,6 +38,7 @@ const DataRow = ({ props: { record } }) => {
       }
     }
   };
+
   /**
    * Handles the actions belonging to the segmented button
    * @param e {string}: action:recordId
@@ -51,7 +53,9 @@ const DataRow = ({ props: { record } }) => {
           const permissions =
             await StorageAccessFramework.requestDirectoryPermissionsAsync();
           if (permissions.granted === true) {
-            await setSetting({ directory: permissions.directoryUri });
+            await setSetting({
+              directory: permissions.directoryUri,
+            });
             exportGeoJSON(permissions.directoryUri, record);
           }
         } else {
@@ -65,17 +69,17 @@ const DataRow = ({ props: { record } }) => {
         removeRecord(id);
         break;
       default:
-        sendNotification({ type: error, msg: "Unknown action" });
+        sendNotification({ type: "error", msg: "Unknown action" });
     }
   };
 
   const copyCoordsToClipboard = async () => {
     await Clipboard.setStringAsync(
-      `${record.gps[0].latitude}, ${record.gps[0].longitude}`
+      `${record.exporter.data[0].coords.latitude}, ${record.exporter.data[0].coords.longitude}`
     );
   };
 
-  return (
+  return record ? (
     <Card style={{ margin: 10 }}>
       <Card.Content>
         <View
@@ -124,8 +128,8 @@ const DataRow = ({ props: { record } }) => {
               paddingBottom: 5,
             }}
           >
-            <Text>Points: {record.gps.length}</Text>
-            {record.gps.length > 1 ? (
+            <Text>Points: {record.exporter.data.length}</Text>
+            {record.exporter.data.length > 1 ? (
               <Text>Length: {getLength(record)}</Text>
             ) : (
               ""
@@ -144,8 +148,8 @@ const DataRow = ({ props: { record } }) => {
               paddingBottom: 5,
             }}
           >
-            <Text>Lat: {record.gps[0].latitude}</Text>
-            <Text>Lon: {record.gps[0].longitude}</Text>
+            <Text>Lat: {record.exporter.data[0].coords.latitude}</Text>
+            <Text>Lon: {record.exporter.data[0].coords.longitude}</Text>
           </View>
         ) : (
           ""
@@ -194,7 +198,7 @@ const DataRow = ({ props: { record } }) => {
         )}
       </Card.Actions>
     </Card>
-  );
+  ) : null;
 };
 
 export default DataRow;

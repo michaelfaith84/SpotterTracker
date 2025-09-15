@@ -31,7 +31,9 @@ const BrowseData = () => {
   };
 
   useEffect(() => {
-    loadRecords();
+    if (records.length === 0) {
+      loadRecords();
+    }
   }, []);
 
   return (
@@ -67,15 +69,17 @@ const BrowseData = () => {
           {/*<Appbar.Action icon="magnify" />*/}
         </Appbar.Header>
         <ScrollView>
-          {records.length > 0
+          {Array.isArray(records) && records.length > 0
             ? records.map((record) => {
-                if (filters.includeSpots && record.type === "spot") {
-                  return <DataRow props={{ record }} key={record.id} />;
-                } else if (filters.includeTracks && record.type === "track") {
-                  return <DataRow props={{ record }} key={record.id} />;
+                if (record) {
+                  if (filters.includeSpots && record.type === "spot") {
+                    return <DataRow record={record} key={record.id} />;
+                  } else if (filters.includeTracks && record.type === "track") {
+                    return <DataRow record={record} key={record.id} />;
+                  }
                 }
               })
-            : ""}
+            : null}
         </ScrollView>
         <Notification />
       </SafeAreaView>

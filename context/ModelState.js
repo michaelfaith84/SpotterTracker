@@ -20,10 +20,8 @@ import * as FileSystem from "expo-file-system";
 import { StorageAccessFramework } from "expo-file-system";
 import bbox from "@turf/bbox";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Exporter from "expo-location-export/src/Exporter";
 
-console.log("ModelReducer type", typeof ModelReducer);
-
-// TODO: Integrate expo-location-export
 const ModelState = (props) => {
   const initialState = {
     settings: {},
@@ -95,10 +93,29 @@ const ModelState = (props) => {
    * @param {string} name
    * @param {string} type
    * @param [gps=null]
+   * @param [properties=null]
    * @return {Promise<void>}
    */
-  const createRecord = async (id, name, type, gps = null) => {
-    const record = { id, name, type, gps: gps ? [gps] : [] };
+  const createRecord = async (
+    id,
+    name,
+    type,
+    gps = null,
+    properties = null
+  ) => {
+    const obj = new Exporter({ id, name });
+    if (properties) {
+      obj.add({ ...gps, props: properties });
+    } else {
+      obj.add(gps);
+    }
+
+    const record = {
+      id,
+      name,
+      type,
+      exporter: gps ? JSON.parse(obj.dump()) : {},
+    };
     await AsyncStorage.setItem(id, JSON.stringify(record))
       .then(() =>
         dispatch({
@@ -115,14 +132,18 @@ const ModelState = (props) => {
    *
    * @param id
    * @param dataType
-   * @param data
+   * @param location
+   * @param [properties={}]
    * @return {Promise<void>}
    */
-  const appendRecord = async (id, dataType, data) => {
+  const appendRecord = async (id, dataType, location, properties = {}) => {
     const record = state.records.filter((record) => record.id === id)[0];
+    const obj = Exporter.load(record.location);
+    location["props"] = properties;
+    obj.add(location);
     const updatedRecord = {
       ...record,
-      [dataType]: record[dataType] ? [...record[dataType], data] : data,
+      [dataType]: record[dataType] ? [...record[dataType], location] : location,
     };
     await AsyncStorage.setItem(id, JSON.stringify(updatedRecord)).then(() =>
       dispatch({ type: APPEND_RECORD, payload: updatedRecord })
@@ -160,10 +181,15 @@ const ModelState = (props) => {
           .then((rec) => {
             dispatch({
               type: LOAD_RECORD,
-              payload: JSON.parse(rec),
+              payload: rec,
             });
           })
-          .catch(() => {})
+          .catch((e) =>
+            dispatch({
+              type: SET_NOTIFICATION,
+              payload: { type: "error", msg: e },
+            })
+          )
     );
   };
 
@@ -215,8 +241,11 @@ const ModelState = (props) => {
   };
 
   const exportGeoJSON = async (uri, record) => {
+    const exporter = Exporter.load(JSON.stringify(record.exporter));
     const feature =
-      record.type === "track" ? makeLineString(record) : makePoint(record);
+      record.type === "track"
+        ? exporter.toLine("geojson")
+        : exporter.toPoint("geojson");
     await StorageAccessFramework.createFileAsync(
       uri,
       `${record.name}.json`,
@@ -237,32 +266,27 @@ const ModelState = (props) => {
           })
         );
       })
-      .catch(async () => {
-        return false;
-        // sendNotification({ type: "error", msg: "Unable to export" });
+      .catch(async (e) => {
+        sendNotification({ type: "error", msg: "Unable to export" });
       });
   };
 
   // 'setting' should be a key: value pair
   const setSetting = async (setting) => {
-    await AsyncStorage.setItem(
-      "settings",
-      JSON.stringify({
-        ...state.settings,
-        [Object.keys(setting)[0]]: JSON.stringify(setting),
-      })
-    );
+    await AsyncStorage.setItem("settings", JSON.stringify(state.settings));
     dispatch({
       type: SET_SETTINGS,
-      payload: { ...state.settings, [Object.keys(setting)[0]]: setting },
+      payload: { ...state.settings, setting },
     });
   };
 
   const loadSettings = async () => {
     const settings = await AsyncStorage.getItem("settings");
+    const parsed = JSON.parse(settings);
+
     dispatch({
       type: SET_SETTINGS,
-      payload: settings ? JSON.parse(settings) : {},
+      payload: settings ? parsed : {},
     });
   };
 

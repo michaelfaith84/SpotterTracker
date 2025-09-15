@@ -31,7 +31,7 @@ const Spot = ({ props: { fetching, setFetching } }) => {
     setVisible(false);
   };
 
-  const getLocation = async (name = null) => {
+  const getLocation = async (name = null, properties = {}) => {
     // Handle empty strings
     if ((name && name.length === 0) || typeof name !== "string") {
       name = null;
@@ -51,7 +51,8 @@ const Spot = ({ props: { fetching, setFetching } }) => {
     }
 
     createRecord(id, name, "spot", {
-      ...location.coords,
+      ...location,
+      props: properties,
       time: start,
     });
     setFetching(false);

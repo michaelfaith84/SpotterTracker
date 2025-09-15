@@ -22,14 +22,11 @@ import * as ImagePicker from "expo-image-picker";
 export async function takePhoto() {
   const permission = await ImagePicker.requestCameraPermissionsAsync();
   if (!permission.granted) {
-    alert("Camera permission required");
+    console.error("Permission denied");
     return;
   }
 
-  const result = await ImagePicker.launchCameraAsync({
-    mediaTypes: ImagePicker.CameraType,
-    quality: 1,
-  });
+  const result = await ImagePicker.launchCameraAsync();
 
   if (!result.canceled) {
     return result.assets[0].uri;

@@ -21,8 +21,8 @@ const LongPressDialog = ({ visible, setVisible, icon, startFunc }) => {
   const [name, setName] = useState("");
   const hideDialog = () => setVisible(false);
   const theme = useTheme();
-  const handleStart = () => {
-    startFunc(name);
+  const handleStart = (props = null) => {
+    startFunc(name, props);
     hideDialog();
   };
 
@@ -38,8 +38,8 @@ const LongPressDialog = ({ visible, setVisible, icon, startFunc }) => {
    * Gets a spot and then lets the user launch the camera app. If
    */
   const handleStartWithPic = async () => {
-    handleStart(name);
     const image = await takePhoto();
+    await handleStart({ picture: image });
     handleGeotagging(image);
   };
 
